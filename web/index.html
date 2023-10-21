@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html  >
+<head>
+  <!-- Site made with Mobirise Website Builder v5.8.0, https://mobirise.com -->
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Mobirise v5.8.0, mobirise.com">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+  <link rel="shortcut icon" href="assets/images/logo5.jpeg" type="image/x-icon">
+  <meta name="description" content="nothing">
+  
+  
+  <title>My projects in highschool</title>
+  <link rel="stylesheet" href="assets/web/assets/mobirise-icons2/mobirise2.css">
+  <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/bootstrap/css/bootstrap-grid.min.css">
+  <link rel="stylesheet" href="assets/bootstrap/css/bootstrap-reboot.min.css">
+  <link rel="stylesheet" href="assets/socicon/css/styles.css">
+  <link rel="stylesheet" href="assets/theme/css/style.css">
+  <link rel="preload" href="https://fonts.googleapis.com/css?family=Jost:100,200,300,400,500,600,700,800,900,100i,200i,300i,400i,500i,600i,700i,800i,900i&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Jost:100,200,300,400,500,600,700,800,900,100i,200i,300i,400i,500i,600i,700i,800i,900i&display=swap"></noscript>
+  <link rel="preload" as="style" href="assets/mobirise/css/mbr-additional.css"><link rel="stylesheet" href="assets/mobirise/css/mbr-additional.css" type="text/css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hapticdata/toxiclibsjs@0.3.2/build/toxiclibs.js"></script>
+  <script>
+    const HEI = 650;
+    const {VerletPhysics2D, VerletParticle2D, VerletSpring2D} = toxi.physics2d;
+    const {GravityBehavior} = toxi.physics2d.behaviors;
+    const {Vec2D, Rect} = toxi.geom;
+    const a = [-2, -2.08, -2, -1.82, -1.6, -1.4, -1, -0.4, 0, 0.25, 0.4, 0.32, 0.5, 0.8, 0.8, 0.6, 0.2,
+    0.11, 0.04, -0.1, 0, -0.1, -0.25, -0.4, -0.65, -0.4, -0.2, -0.03, -0.06, -0.2, -0.4, -0.6,
+    -0.8, -0.95, -1.2, -1.36, -1.4, -1.58, -1.56, -1.8];
+    const b = [0, -0.5, -1, -1.3, -1.55, -1.68, -1.87, -2.03, -2.1, -2.1, -2, -1.75, -1.42, -1.35,
+    -1.2, -0.95, -0.4, -0.15, 0.2, 0.45, 0.6, 0.7, 0.6, 0.68, 0.75, 0.92, 1, 1.1, 1.22, 1.24,
+    1.2, 1.11, 0.96, 0.78, 0.73, 0.65, 0.82, 0.8, 0.6, 0.38];
+    const control = [[-1.752, -0.84], [-0.892, 0.304], // body
+                [-0.416, -1.11], [-0.985, -0.39], // body
+                [0.31, -1.05], [-0.02, -1.62], // eyes 4 and 5
+                [-0.29, -2.256],[-0.52, -2.142], // outer hair
+                [0.606, -0.56], [0.753, -0.667],// outer hair
+                [-0.16, -1.945], [-0.29, -1.88],// inner hair
+                [0.473, -0.755], [0.58, -0.86]];// inner hair
+    const k = 0.001;
+    const scl = 140;
+    let physics;       
+    let pair, con;   
+    let h1, h2; 
+    let time;      
+    var cat = (w) => {
+        function upda(){
+            if (w.mouseIsPressed && w.mouseY < w.height){
+                time = 0;
+                let mao = w.createVector(w.mouseX, w.mouseY);
+                let det = [
+                [p5.Vector.sub(mao, w.createVector(con[0].x, con[0].y)).mag(), con[0]],
+                [p5.Vector.sub(mao, w.createVector(con[1].x, con[1].y)).mag(), con[1]],
+                [p5.Vector.sub(mao, w.createVector(con[2].x, con[2].y)).mag(), con[2]],
+                [p5.Vector.sub(mao, w.createVector(con[3].x, con[3].y)).mag(), con[3]]
+                ]
+                let min = Infinity;
+                let drag = con[0];
+                for (let i = 0; i < det.length; i++) {
+                    if (det[i][0] < min) {
+                    min = det[i][0];  drag = det[i][1];
+                }}
+                drag.lock();
+                drag.x = w.mouseX / scl;
+                drag.y = w.mouseY / scl;
+                drag.unlock();  
+                }
+    }
+    w.setup = () => {
+        let can = w.createCanvas(w.windowWidth, HEI);
+        time = 0;
+        w.frameRate(30);
+        physics = new VerletPhysics2D();
+        physics.setWorldBounds(new Rect(0, 0, w.width/scl, w.height/scl));
+        pair = a.map((e, i) => {return new VerletParticle2D(e + 3, b[i] + 3)});
+        pair.forEach(p => {physics.addParticle(p)});
+        con = control.map((e) => {return new VerletParticle2D(e[0]+3, e[1]+3)})
+        con.forEach(p => {physics.addParticle(p)});
+        for (let i=0; i<pair.length; i++){
+            for (let j=0; j<pair.length; j++){
+              dif = p5.Vector.sub(w.createVector(pair[i].x, pair[i].y),
+                                w.createVector(pair[j].x, pair[j].y));
+              physics.addSpring(new VerletSpring2D(pair[i],pair[j], dif.mag(), k));
+            }
+            for (let h=0; h<con.length; h++){
+              dif = p5.Vector.sub(w.createVector(pair[i].x, pair[i].y),
+                                w.createVector(con[h].x, con[h].y));
+              physics.addSpring(new VerletSpring2D(pair[i],con[h], dif.mag(), k));
+            }  
+        }
+    }
+    w.draw = () => {
+        w.background(255);
+        w.stroke(192);
+        w.strokeWeight(8);
+        w.noFill();
+        w.beginShape();
+        for (let i=0; i<pair.length; i++){
+            let anp1 = w.createVector(scl*pair[i].x, scl*pair[i].y);
+            w.curveVertex(anp1.x, anp1.y);
+        }
+        w.endShape(w.CLOSE);
+        w.push();
+        w.fill(0);
+        w.strokeWeight(5);
+        if (time < 10){
+            w.circle(scl*con[4].x, scl*con[4].y, 5);
+            w.circle(scl*con[5].x, scl*con[5].y, 5);
+        }
+        else{
+            w.line(scl*con[4].x-5,scl*con[4].y-5,scl*con[4].x+5,scl*con[4].y+5);
+            w.line(scl*con[4].x+5,scl*con[4].y-5,scl*con[4].x-5,scl*con[4].y+5);
+            w.line(scl*con[5].x-5,scl*con[5].y-5,scl*con[5].x+5,scl*con[5].y+5);
+            w.line(scl*con[5].x+5,scl*con[5].y-5,scl*con[5].x-5,scl*con[5].y+5);
+        }
+    w.line(scl*con[6].x, scl*con[6].y, scl*con[10].x, scl*con[10].y);
+    w.line(scl*con[7].x, scl*con[7].y, scl*con[11].x, scl*con[11].y);
+    w.line(scl*con[8].x, scl*con[8].y, scl*con[12].x, scl*con[12].y);
+    w.line(scl*con[9].x, scl*con[9].y, scl*con[13].x, scl*con[13].y);
+    w.pop();
+    upda();
+    time += 1 / w.frameRate();
+    if (time < 10){physics.update()}
+        }
+    }
+    new p5(cat, 'cat');
+  </script>
+
+  <style>
+    .bg {
+        background-color: rgb(236, 227, 227);
+    }
+
+  </style>
+  
+  
+  
+</head>
+<body>
+  
+<section data-bs-version="5.1" class="header14 cid-tRMGXtLTD0 mbr-fullscreen" id="header14-1q">
+        <div class="container">
+            <div class="row justify-content-center align-items-center">
+                <div class="col-12 col-md">
+                    <div class="text-wrapper">
+                        <h1 class="mbr-section-title mbr-fonts-style mb-3 display-2">
+                            <strong>Hi</strong></h1>
+                        <p class="mbr-text mbr-fonts-style display-7">
+                        My name is Marc, this is a personal page for my projects made in middle school and high school</p>
+                        <div class="mbr-section-btn mt-3">
+                            <a class="btn btn-secondary display-4" href="https://github.com/PaperClipSugar8/"> my projects</a>
+                            <a class="btn btn-black-outline display-4" href="https://github.com/PaperClipSugar8/p5.js/blob/main/cat.js"> code &gt;</a>
+                        </div>
+                        <p class="mbr-text mbr-fonts-style row justify-content-center display-2">
+                            ⇣</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 image-wrapper">
+                    <div class="row justify-content-center" id="cat"></div>
+                </div>
+            </div>
+        </div>
+</section>
+
+<section data-bs-version="5.1" class="image4 cid-tSNavgLptz" id="image4-27">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-lg-6">
+                <div class="image-wrapper">
+                    <img src="assets/images/4dcube.gif" alt="Mobirise Website Builder">
+                    <p class="mbr-text mbr-fonts-style mt-2 align-center display-4">
+                    A cube and a ployhedron in 4D, made in Blender with code (bpy python)</p>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="image-wrapper">
+                    <img src="assets/images/hypersphere-blender-1.gif" alt="Mobirise Website Builder">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section data-bs-version="5.1" class="slider2 cid-tSNcNTGW1q" id="slider2-29">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10">
+                <div class="carousel slide" id="tSNdwgUeZE" data-interval="5000" data-bs-interval="5000">
+                    
+                    <ol class="carousel-indicators">
+                        <li data-slide-to="0" data-bs-slide-to="0" class="active" data-target="#tSNdwgUeZE" data-bs-target="#tSNdwgUeZE"></li>
+                        <li data-slide-to="1" data-bs-slide-to="1" data-target="#tSNdwgUeZE" data-bs-target="#tSNdwgUeZE"></li>
+                        <li data-slide-to="2" data-bs-slide-to="2" data-target="#tSNdwgUeZE" data-bs-target="#tSNdwgUeZE"></li>
+                    </ol>
+                    <div class="carousel-inner">
+                        <div class="carousel-item slider-image item active">
+                            <div class="item-wrapper">
+                                <video class="w-100 h-100" muted controls>
+                                    <source src="https://github.com/PaperClipSugar8/p5.js/raw/main/clock.mp4" type="video/mp4" />
+                                </video>
+                                <div class="carousel-caption">
+                                    <h5 class="mbr-section-subtitle mbr-fonts-style display-5">
+                                        <strong>Domain Coloring</strong>
+                                        <a href="https://github.com/PaperClipSugar8/p5.js/blob/main/domain_coloring.js" class="btn item-btn bg display-15" target="_blank"> code </a>
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item slider-image item">
+                            <div class="item-wrapper">
+                                <video class="h-100 w-100" muted controls>
+                                    <source src="https://github.com/PaperClipSugar8/p5.js/raw/main/stars.mp4" type="video/mp4" />
+                                </video>
+                                <div class="carousel-caption">
+                                    <h5 class="mbr-section-subtitle mbr-fonts-style display-5">
+                                        <strong>Domain Coloring</strong>
+                                        <a href="https://github.com/PaperClipSugar8/p5.js/blob/main/domain_coloring.js" class="btn item-btn bg display-15" target="_blank"> code </a>
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item slider-image item">
+                            <div class="item-wrapper">
+                                <video class="h-100 w-100" muted controls>
+                                    <source src="https://github.com/PaperClipSugar8/p5.js/raw/main/window.mp4" type="video/mp4" />
+                                </video>
+                                <div class="carousel-caption">
+                                    <h5 class="mbr-section-subtitle mbr-fonts-style display-5">
+                                        <strong>Domain Coloring</strong>
+                                        <a href="https://github.com/PaperClipSugar8/p5.js/blob/main/domain_coloring.js" class="btn item-btn bg display-15" target="_blank"> code </a>
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <a class="carousel-control carousel-control-prev" role="button" data-slide="prev" data-bs-slide="prev" href="#tSNdwgUeZE">
+                        <span class="mobi-mbri mobi-mbri-arrow-prev" aria-hidden="true"></span>
+                        <span class="sr-only visually-hidden">Previous</span>
+                    </a>
+                    <a class="carousel-control carousel-control-next" role="button" data-slide="next" data-bs-slide="next" href="#tSNdwgUeZE">
+                        <span class="mobi-mbri mobi-mbri-arrow-next" aria-hidden="true"></span>
+                        <span class="sr-only visually-hidden">Next</span>
+                    </a>
+                </div>
+            </div>
+            <strong class=" row justify-content-center">
+                Graphing functions using round images in lieu of hue circle (p5 javascirpt)
+            </strong>
+        </div>
+    </div>
+</section>
+
+<section data-bs-version="5.1" class="video3 cid-tSNapAZ3ih" id="video3-25">
+    <div class="container">
+        <div class="mbr-section-head">
+            <h4 class="mbr-section-title mbr-fonts-style mb-0 display-2">
+                <strong>More</strong></h4>
+        </div>
+        <div class="row mt-4">
+
+            <div class="col-12 col-md-6 video-block">
+                <div class="video-wrapper"><video style="width:100%" controls playsinline><source src="https://github.com/PaperClipSugar8/Processing/raw/main/ant%20colony.mp4"/></video></div>
+                <p class="mbr-text pt-2 mbr-fonts-style display-4">
+                Dumb-Dumb Genetic algorithm for TSP, nifty project from csa class (Processing java)</p>
+                <div class="mbr-section-btn mt-2 justify-content-center">
+                    <a href="https://github.com/PaperClipSugar8/Processing/blob/main/ants.pde" class="btn item-btn bg display-15" target="_blank">ant pit</a>
+                    <a href="https://github.com/PaperClipSugar8/Processing/blob/main/Queen.pde" class="btn item-btn bg display-15" target="_blank"> queen </a>
+                    <a href="https://github.com/PaperClipSugar8/Processing/blob/main/calculations.pde" class="btn item-btn bg display-15" target="_blank"> calculations</a>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 video-block">
+                <div class="video-wrapper"><video style="width:100%" controls playsinline><source src="https://github.com/PaperClipSugar8/Processing/raw/main/blocks.mp4"/></video></div>
+                <p class="mbr-text pt-2 mbr-fonts-style display-4">
+                Nodes connected together to remember a pattern or merge multiple patterns (Processing java)</p>
+                <div class="mbr-section-btn mt-2 justify-content-center">
+                    <a href="https://github.com/PaperClipSugar8/Processing/blob/main/NetWork.pde" class="btn item-btn bg display-15" target="_blank"> Nodes </a>
+                    <a href="https://github.com/PaperClipSugar8/Processing/blob/main/memoryNetWork.pde" class="btn item-btn bg display-15" target="_blank"> Main </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+
+            <div class="col-12 col-md-6 video-block">
+                <div class="video-wrapper"><video style="width:100%" controls playsinline><source src="https://github.com/PaperClipSugar8/Processing/raw/main/mandelbrot.mp4"/></video></div>
+                <p class="mbr-text pt-2 mbr-fonts-style display-4">
+                Simple mandelbrot set with z^n + c as n goes from 2 to 5, accidently lost the code</p>
+            </div>
+
+            <div class="col-12 col-md-6 video-block">
+                <div class="video-wrapper"><video style="width:100%" controls playsinline><source src="https://github.com/PaperClipSugar8/Processing/raw/main/mushroom.mp4"/></video></div>
+                <p class="mbr-text pt-2 mbr-fonts-style display-4">
+                The Matrix rain with a image fit nicely inside (p5 javascript)</p>
+                <div class="mbr-section-btn mt-2 justify-content-center">
+                    <a href="https://github.com/PaperClipSugar8/p5.js/blob/main/mushroom_matrix_rain.js" class="btn item-btn bg display-15" target="_blank"> it </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section data-bs-version="5.1" class="slider4 mbr-embla cid-tSMCEcrKSX" id="slider4-21">
+    <div class="position-relative text-center">
+        <div class="mbr-section-head">
+            <h4 class="mbr-section-title mbr-fonts-style align-center mb-0 display-2">
+                <strong>And More</strong></h4>   
+        </div>
+        <div class="embla mt-4" data-skip-snaps="true" data-align="center" data-contain-scroll="trimSnaps" data-auto-play-interval="5" data-draggable="true">
+            <div class="embla__viewport container-fluid">
+                <div class="embla__container">
+                    <div class="embla__slide slider-image item active" style="margin-left: 1rem; margin-right: 1rem;">
+                        <div class="slide-content">
+                            <div class="item-wrapper">
+                                <div class="item-img">
+                                    <img src="assets/images/kjvkhf-1000x563.png" alt="Mobirise Website Builder" data-slide-to="0" data-bs-slide-to="0">
+                                </div>
+                            </div>
+                            <div class="item-content">
+                                <h5 class="item-title mbr-fonts-style display-7"><strong>Glass Tubes</strong></h5>
+                                
+                                <p class="mbr-text mbr-fonts-style mt-3 display-7">
+                                    Cool looking glass tubes, can flip inside-out (bpy python)
+                                </p>
+                            </div>
+                            <div class="mbr-section-btn item-footer mt-2"><a href="https://github.com/PaperClipSugar8/blender_bpy/blob/main/fibers.py" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>code</a></div>
+                        </div>
+                    </div>
+                    
+                    <div class="embla__slide slider-image item" style="margin-left: 1rem; margin-right: 1rem;">
+                        <div class="slide-content">
+                            <div class="item-wrapper">
+                                <div class="item-img">
+                                    <img src="assets/images/screenshot-2023-10-15-at-11.59.14-am-1000x561.png" alt="Mobirise Website Builder" data-slide-to="1" data-bs-slide-to="1">
+                                </div>
+                            </div>
+                            <div class="item-content">
+                                <h5 class="item-title mbr-fonts-style display-7"><strong>superBreakOut</strong></h5>
+                                
+                                <p class="mbr-text mbr-fonts-style mt-3 display-7">
+                                    csa nifty project, the game Super BreakOut (Processing java)
+                                </p>
+                            </div>
+                            <div class="mbr-section-btn item-footer mt-2">
+                                <a href="https://github.com/PaperClipSugar8/Processing/blob/main/superBreakOut.pde" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>main&nbsp;</a>
+                                <a href="https://github.com/PaperClipSugar8/Processing/blob/main/Ball.pde" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>ball&nbsp;</a>
+                                <a href="https://github.com/PaperClipSugar8/Processing/blob/main/Block.pde" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>block&nbsp;</a>
+                                <a href="https://github.com/PaperClipSugar8/Processing/blob/main/Paddle.pde" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>paddle&nbsp;</a>
+                                <a href="https://github.com/PaperClipSugar8/Processing/blob/main/functions.pde" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>calculations&nbsp;</a>
+                            </div>
+                        </div>
+
+                    </div><div class="embla__slide slider-image item" style="margin-left: 1rem; margin-right: 1rem;">
+                        <div class="slide-content">
+                            <div class="item-wrapper">
+                                <div class="item-img">
+                                    <img src="assets/images/screenshot-2023-10-15-at-12.06.14-pm-1000x861.png" alt="Mobirise Website Builder" data-slide-to="2" data-bs-slide-to="2">
+                                </div>
+                            </div>
+                            <div class="item-content">
+                                <h5 class="item-title mbr-fonts-style display-7"><strong>climate Spiral</strong></h5>
+                                
+                                <p class="mbr-text mbr-fonts-style mt-3 display-7">
+                                Visualizing global temperature change over decades remade in 3D view (p5 javascript)
+                                    <br></p>
+                            </div>
+                            <div class="mbr-section-btn item-footer mt-2"><a href="https://github.com/PaperClipSugar8/p5.js/blob/main/climate.js" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>code&nbsp;</a></div>
+                        </div>
+
+                    </div><div class="embla__slide slider-image item" style="margin-left: 1rem; margin-right: 1rem;">
+                        <div class="slide-content">
+                            <div class="item-wrapper">
+                                <div class="item-img">
+                                    <img src="assets/images/screenshot-2023-10-15-at-12.11.05-pm-808x686.png" alt="Mobirise Website Builder" data-slide-to="3" data-bs-slide-to="3">
+                                </div>
+                            </div>
+                            <div class="item-content">
+                                <h5 class="item-title mbr-fonts-style display-7"><strong>Game of Life</strong></h5>
+                                
+                                <p class="mbr-text mbr-fonts-style mt-3 display-7">
+                                Conway's Game of Life with convolution (p5 javascript)
+                                <br></p>
+                            </div>
+                            <div class="mbr-section-btn item-footer mt-2"><a href="https://github.com/PaperClipSugar8/p5.js/blob/main/convolve_game_of_life.js" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>code</a></div>
+                        </div>
+
+                    </div><div class="embla__slide slider-image item" style="margin-left: 1rem; margin-right: 1rem;">
+                        <div class="slide-content">
+                            <div class="item-wrapper">
+                                <div class="item-img">
+                                    <img src="assets/images/screenshot-2023-10-15-at-12.08.47-pm-808x804.png" alt="Mobirise Website Builder" data-slide-to="4" data-bs-slide-to="4">
+                                </div>
+                            </div>
+                            <div class="item-content">
+                                <h5 class="item-title mbr-fonts-style display-7"><strong>ASCII Art</strong></h5>
+                                
+                                <p class="mbr-text mbr-fonts-style mt-3 display-7">
+                                turns image into symbols according to brightness (p5 javascript)
+                                <br></p>
+                            </div>
+                            <div class="mbr-section-btn item-footer mt-2"><a href="https://github.com/PaperClipSugar8/p5.js/blob/main/ascii_art.js" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>code</a></div>
+                        </div>
+
+                    </div><div class="embla__slide slider-image item" style="margin-left: 1rem; margin-right: 1rem;">
+                        <div class="slide-content">
+                            <div class="item-wrapper">
+                                <div class="item-img">
+                                    <img src="assets/images/screenshot-2023-10-15-at-12.16.26-pm-808x802.png" alt="Mobirise Website Builder" data-slide-to="5" data-bs-slide-to="5">
+                                </div>
+                            </div>
+                            <div class="item-content">
+                                <h5 class="item-title mbr-fonts-style display-7"><strong>Three body</strong></h5>
+                                
+                                <p class="mbr-text mbr-fonts-style mt-3 display-7">
+                                three stars attracting each other with a cool looking effect. In 2D and in 3D (p5 javascript)
+                                <br></p>
+                            </div>
+                            <div class="mbr-section-btn item-footer mt-2"><a href="https://github.com/PaperClipSugar8/p5.js/blob/main/three_body_logo.js" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>2D</a></div>
+                            <div class="mbr-section-btn item-footer mt-2"><a href="https://github.com/PaperClipSugar8/p5.js/blob/main/three_body.js" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>3D</a></div>
+                        </div>
+
+                    </div><div class="embla__slide slider-image item" style="margin-left: 1rem; margin-right: 1rem;">
+                        <div class="slide-content">
+                            <div class="item-wrapper">
+                                <div class="item-img">
+                                    <img src="assets/images/screenshot-2023-10-15-at-12.20.08-pm-808x796.png" alt="Mobirise Website Builder" data-slide-to="6" data-bs-slide-to="6">
+                                </div>
+                            </div>
+                            <div class="item-content">
+                                <h5 class="item-title mbr-fonts-style display-7"><strong>Shapes</strong></h5>
+                                
+                                <p class="mbr-text mbr-fonts-style mt-3 display-7">
+                                Implementation of Super Shapes (p5 javascript)
+                                <br></p>
+                            </div>
+                            <div class="mbr-section-btn item-footer mt-2"><a href="https://github.com/PaperClipSugar8/p5.js/blob/main/interesting_shape.js" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>code</a></div>
+                        </div>
+
+                    </div><div class="embla__slide slider-image item" style="margin-left: 1rem; margin-right: 1rem;">
+                        <div class="slide-content">
+                            <div class="item-wrapper">
+                                <div class="item-img">
+                                    <img src="assets/images/screenshot-2023-10-15-at-2.01.17-pm-808x797.png" alt="Mobirise Website Builder" data-slide-to="7" data-bs-slide-to="7">
+                                </div>
+                            </div>
+                            <div class="item-content">
+                                <h5 class="item-title mbr-fonts-style display-7"><strong>Instance Cube</strong></h5>
+                                
+                                <p class="mbr-text mbr-fonts-style mt-3 display-7">
+                                Create cubes with materials in Blender easily and save memory with Automated Instancing in any range of colors (bpy python)
+                                <br></p>
+                            </div>
+                            <div class="mbr-section-btn item-footer mt-2"><a href="https://github.com/PaperClipSugar8/blender_bpy/blob/main/create_instance_color_range.py" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>code</a></div>
+                        </div>
+
+                    </div><div class="embla__slide slider-image item" style="margin-left: 1rem; margin-right: 1rem;">
+                        <div class="slide-content">
+                            <div class="item-wrapper">
+                                <div class="item-img">
+                                    <img src="assets/images/aaaaaaa.png" alt="Mobirise Website Builder" data-slide-to="7" data-bs-slide-to="7">
+                                </div>
+                            </div>
+                            <div class="item-content">
+                                <h5 class="item-title mbr-fonts-style display-7"><strong>Other</strong></h5>
+                            
+                                <p class="mbr-text mbr-fonts-style mt-3 display-7">
+                                content appeared in high school classes (python)
+                                <br></p>
+                            </div>
+                            <div class="mbr-section-btn item-footer mt-2">
+                                <a href="https://github.com/PaperClipSugar8/blender_bpy/blob/main/Data%20structures.ipynb" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>data structures&nbsp;</a>
+                                <a href="https://github.com/PaperClipSugar8/blender_bpy/blob/main/Sorting.ipynb" class="btn item-btn btn-white display-7" target="_blank"><span class="mobi-mbri mobi-mbri-add-submenu mbr-iconfont mbr-iconfont-btn"></span>sorting&nbsp;</a>
+                            </div>
+
+                            
+                        </div>
+                </div>
+                    
+                </div>
+            </div>
+            <button class="embla__button embla__button--prev">
+                <span class="mobi-mbri mobi-mbri-arrow-prev mbr-iconfont" aria-hidden="true"></span>
+                <span class="sr-only visually-hidden visually-hidden">Previous</span>
+            </button>
+            <button class="embla__button embla__button--next">
+                <span class="mobi-mbri mobi-mbri-arrow-next mbr-iconfont" aria-hidden="true"></span>
+                <span class="sr-only visually-hidden visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+<section data-bs-version="5.1" class="footer5 cid-tSNcw9OZnB" once="footers" id="footer5-28">
+    <div class="container">
+        <div class="media-container-row">
+            <div class="col-md-2 col-6">
+                <div class="media-wrap">
+                    <a href="https://mobirise.co/">
+                        <img src="assets/images/logo.png" alt="Mobirise Website Builder">
+                    </a>
+                </div>
+            </div>
+            <div class="col-10 col-6">
+                <p class="mbr-text mbr-fonts-style display-7">
+                    Website built using Mobirise
+                </p>
+            </div>
+        </div>
+</section>
+
+<section></section><script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>  <script src="assets/smoothscroll/smooth-scroll.js"></script>  <script src="assets/ytplayer/index.js"></script>  <script src="assets/playervimeo/vimeo_player.js"></script>  <script src="assets/embla/embla.min.js"></script>  <script src="assets/embla/script.js"></script>  <script src="assets/theme/js/script.js"></script>  
+  
+  
+</body>
+</html>
